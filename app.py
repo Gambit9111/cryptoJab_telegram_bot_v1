@@ -17,5 +17,4 @@ def send_welcome(message):
 def run():
     telegram_bot.polling()
 
-if __name__ == "__main__":
-    run()
+run()
