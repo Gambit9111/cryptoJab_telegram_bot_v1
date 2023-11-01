@@ -13,4 +13,4 @@ telegram_bot = telebot.TeleBot(TELEGRAM_BOT_API_KEY, parse_mode="HTML")
 def send_welcome(message):
     telegram_bot.reply_to(message, "Howdy, how are you doing?")
 
-telegram_bot.infinity_polling()
+telegram_bot.polling()
