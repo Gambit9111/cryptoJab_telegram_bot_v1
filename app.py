@@ -7,30 +7,37 @@ import datetime
 # TODO: TO DO
 # // REMOVED
 
-
 import os
 from dotenv import load_dotenv
 load_dotenv()
-API_TOKEN = os.getenv("TELEGRAM_BOT_API_KEY")
-bot = TeleBot(API_TOKEN, num_threads=4)
 
-# script imports
+TELEGRAM_BOT_API_TOKEN = os.getenv("TELEGRAM_BOT_API_KEY")
+bot = TeleBot(TELEGRAM_BOT_API_TOKEN, num_threads=4, parse_mode="HTML")
+
+# data imports
 from data import PRODUCTS
 from data import PAYMENTS
 from data import WELCOME_MESSAGE
 
+# db imports
 from db import Database
 
+# keyboard imports
 from keyboard_handler import products_factory, products_keyboard, premium_keyboard, payments_factory, payments_keyboard, premium_factory, cancel_subscription_keyboard, ProductsCallbackFilter
+
+# checkout imports
+from coinbase_checkout_handler import create_coinbase_checkout_session
+from stripe_checkout_handler import create_stripe_checkout_session
+
 
 # ! TEST VARIABLES
 premium_user = False
-joined_group = False
+joined_group = True
 valid_until_date_time = "2023-12-12 10:10"
 admin_user = False
 
 
-
+# user_data = {user_telegram_id: product_id}
 user_data = {}
 
 
@@ -141,6 +148,9 @@ def payments_callback(call: types.CallbackQuery):
 
     # get the product from data file
     product = PRODUCTS[chosen_product_id]
+    # * product_id = 0 | 30 days | 45$
+    # * product_id = 1 | 90 days | 120$
+    # * product_id = 2 | 365 days | 365$
 
     # get the payment from callback
     callback_data: dict = payments_factory.parse(callback_data=call.data)
@@ -148,6 +158,8 @@ def payments_callback(call: types.CallbackQuery):
 
     # get the payment from data file
     payment = PAYMENTS[payment_id]
+    # * payment_id = 0 | STRIPE
+    # * payment_id = 1 | COINBASE
 
     # create a markup for the payment methods
     text = f"Subscription for CryptoJab 🚀🚀🚀: {product['name']}\n" \
@@ -158,9 +170,36 @@ def payments_callback(call: types.CallbackQuery):
 
 
     # TODO send user the payment link
-    bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                          text=text)
-    
+
+    match payment_id:
+        case 0:  #? STRIPE
+            
+            # * create stripe checkout session
+            stripe_checkout_session_url = create_stripe_checkout_session(user_telegram_id, chosen_product_id)
+
+            # * create checkout message
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton(text="Buy Subscription 🚀", url=stripe_checkout_session_url))
+
+            # * send user the checkout message
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                        text=text, reply_markup=markup)
+            return
+        
+        case 1: #? COINBASE
+            
+            # * create coinbase checkout session
+            coinbase_checkout_session_url = create_coinbase_checkout_session(user_telegram_id, chosen_product_id)
+            
+            # * create checkout message
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton(text="Buy Subscription 🚀", url=coinbase_checkout_session_url))
+
+            # * send user the checkout message
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                        text=text, reply_markup=markup)
+            return
+        
     print(user_data)
 
 # ! WILL FIRE AFTER ANY PREMIUM OPTION IS SELECTED IF USER IS PREMIUM

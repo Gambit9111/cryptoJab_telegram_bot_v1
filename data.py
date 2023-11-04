@@ -22,6 +22,7 @@ PRODUCTS = [
     },
 ]
 
+
 PAYMENTS = [
     {
         "id": 0,
@@ -34,6 +35,7 @@ PAYMENTS = [
         "emoji": "₿"
     }
 ]
+
 
 PREMIUM = [
     {
