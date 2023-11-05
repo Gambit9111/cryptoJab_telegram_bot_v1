@@ -31,7 +31,7 @@ from stripe_checkout_handler import create_stripe_checkout_session
 
 
 # ! TEST VARIABLES
-premium_user = True
+premium_user = False
 joined_group = False
 valid_until_date_time = "2023-12-12 10:10"
 admin_user = False
@@ -169,7 +169,7 @@ def payments_callback(call: types.CallbackQuery):
     print("User: " + str(call.message.chat.id) + " selected payment: " + str(payment_id))
 
 
-    # TODO send user the payment link
+    # // TODO send user the payment link
 
     match payment_id:
         case 0:  #? STRIPE
