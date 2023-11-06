@@ -5,48 +5,48 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # initialize variables
-coinbase_api_key = os.getenv("COINBASE_API_KEY")
+COINBASE_API_KEY = os.getenv("COINBASE_API_KEY")
 
 # ? 30 Days | 0.15 USD
-coinbase_sub_option_1_duration = os.getenv("COINBASE_SUB_OPTION_1_DURATION")
-coinbase_sub_option_1_price = os.getenv("COINBASE_SUB_OPTION_1_PRICE")
+PRODUCT_1_DURATION = os.getenv("PRODUCT_1_DURATION")
+COINBASE_PRODUCT_1_PRICE = os.getenv("COINBASE_PRODUCT_1_PRICE")
 
-# ? 90 Days | 0.20 USD
-coinbase_sub_option_2_duration = os.getenv("COINBASE_SUB_OPTION_2_DURATION")
-coinbase_sub_option_2_price = os.getenv("COINBASE_SUB_OPTION_2_PRICE")
+# ? 90 Days | 0.2 USD
+PRODUCT_2_DURATION = os.getenv("PRODUCT_2_DURATION")
+COINBASE_PRODUCT_2_PRICE = os.getenv("COINBASE_PRODUCT_2_PRICE")
 
 # ? 365 Days | 0.25 USD
-coinbase_sub_option_3_duration = os.getenv("COINBASE_SUB_OPTION_3_DURATION")
-coinbase_sub_option_3_price = os.getenv("COINBASE_SUB_OPTION_3_PRICE")
+PRODUCT_3_DURATION = os.getenv("PRODUCT_3_DURATION")
+COINBASE_PRODUCT_3_PRICE = os.getenv("COINBASE_PRODUCT_3_PRICE")
 
 coinbase_base_url = "https://commerce.coinbase.com/checkout/"
-coinbase_client = Client(api_key=coinbase_api_key)
+coinbase_client = Client(api_key=COINBASE_API_KEY)
 
 def create_coinbase_checkout_session(user_telegram_id: str, product_id: int):
 
-    coinbase_sub_duration = None
-    coinbase_sub_price = None
+    selected_coinbase_product_price = None
+    selected_coinbase_product_duration = None
 
     # match product_id with coinbase_product_id
     match product_id:
         case 0:
             # ? 30 days
-            coinbase_sub_duration = coinbase_sub_option_1_duration
-            coinbase_sub_price = coinbase_sub_option_1_price
+            selected_coinbase_product_price = COINBASE_PRODUCT_1_PRICE
+            selected_coinbase_product_duration = PRODUCT_1_DURATION
         case 1:
             # ? 90 days
-            coinbase_sub_duration = coinbase_sub_option_2_duration
-            coinbase_sub_price = coinbase_sub_option_2_price
+            selected_coinbase_product_price = COINBASE_PRODUCT_2_PRICE
+            selected_coinbase_product_duration = PRODUCT_2_DURATION
         case 2:
             # ? 365 days
-            coinbase_sub_duration = coinbase_sub_option_3_duration
-            coinbase_sub_price = coinbase_sub_option_3_price
+            selected_coinbase_product_price = COINBASE_PRODUCT_3_PRICE
+            selected_coinbase_product_duration = PRODUCT_3_DURATION
     
     coinbase_checkout_info = {
-        "name": f"Subscription for {coinbase_sub_duration} days",
+        "name": f"Subscription for {selected_coinbase_product_duration} days",
         "description": user_telegram_id,
         "local_price": {
-            "amount": coinbase_sub_price,
+            "amount": selected_coinbase_product_price,
             "currency": "USD"
         },
         "pricing_type": "fixed_price",
