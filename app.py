@@ -1,5 +1,6 @@
 from telebot import types, TeleBot
 import datetime
+import stripe
 
 # * IMPORTANT
 # ! ATEENTION
@@ -10,6 +11,8 @@ import datetime
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
+stripe.api_key = os.getenv('STRIPE_API_KEY')
 
 TELEGRAM_BOT_API_TOKEN = os.getenv("TELEGRAM_BOT_API_KEY")
 TELEGRAM_PREMIUM_CHANNEL_ID = os.getenv("TELEGRAM_PREMIUM_CHANNEL_ID")
@@ -255,6 +258,19 @@ def cancel_subscription_callback(call: types.CallbackQuery):
     if call.data == 'cancel_subscription':
         # TODO cancel the subscription
         print(user_telegram_id, "canceled the sub")
+
+        db = Database()
+        # get user from database
+        user = db.fetchone("SELECT * FROM users WHERE telegram_id = %s", (user_telegram_id,))
+        # delete user from stripe by his subscription id
+        stripe.Subscription.delete(user[4])
+        # delete user from database
+        db.execute("DELETE FROM users WHERE telegram_id = %s", (user_telegram_id,))
+        db.close()
+        # kick user from the group
+        bot.unban_chat_member(TELEGRAM_PREMIUM_CHANNEL_ID, user_telegram_id)
+
+
         text= "Your subscription has been canceled and you no longer have an access to the group"
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                 text=text)
