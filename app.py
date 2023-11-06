@@ -272,7 +272,7 @@ def cancel_subscription_callback(call: types.CallbackQuery):
     # send the user back to premium menu
     if call.data == 'back_to_premium':
         # calculate duration left
-        duration_left = datetime.datetime.strptime(valid_until_date_time, '%Y-%m-%d %H:%M') - datetime.datetime.now()
+        duration_left = valid_until_date_time - datetime.datetime.now()
         # create a markup text to show premium duration
         text = f"Your premium subscription is valid until {valid_until_date_time}\n" \
                f"Duration left: {duration_left.days} days {duration_left.seconds // 3600} hours"
