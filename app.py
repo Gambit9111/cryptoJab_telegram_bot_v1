@@ -16,7 +16,7 @@ stripe.api_key = os.getenv('STRIPE_API_KEY')
 
 TELEGRAM_BOT_API_TOKEN = os.getenv("TELEGRAM_BOT_API_KEY")
 TELEGRAM_PREMIUM_CHANNEL_ID = os.getenv("TELEGRAM_PREMIUM_CHANNEL_ID")
-bot = TeleBot(TELEGRAM_BOT_API_TOKEN, parse_mode="HTML")
+bot = TeleBot(TELEGRAM_BOT_API_TOKEN, num_threads=4)
 
 # data imports
 from data import PRODUCTS
@@ -299,4 +299,4 @@ def cancel_subscription_callback(call: types.CallbackQuery):
 # //    bot.answer_callback_query(callback_query_id=call.id, text='Not available :(', show_alert=True)
 
 bot.add_custom_filter(ProductsCallbackFilter())
-bot.polling()
+bot.infinity_polling(timeout=10, long_polling_timeout=5)
