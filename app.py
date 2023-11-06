@@ -16,7 +16,7 @@ stripe.api_key = os.getenv('STRIPE_API_KEY')
 
 TELEGRAM_BOT_API_TOKEN = os.getenv("TELEGRAM_BOT_API_KEY")
 TELEGRAM_PREMIUM_CHANNEL_ID = os.getenv("TELEGRAM_PREMIUM_CHANNEL_ID")
-bot = TeleBot(TELEGRAM_BOT_API_TOKEN, num_threads=4, parse_mode="HTML")
+bot = TeleBot(TELEGRAM_BOT_API_TOKEN, parse_mode="HTML")
 
 # data imports
 from data import PRODUCTS
@@ -34,13 +34,6 @@ from coinbase_checkout_handler import create_coinbase_checkout_session
 from stripe_checkout_handler import create_stripe_checkout_session
 
 
-# ! TEST VARIABLES
-premium_user = False
-joined_group = False
-valid_until_date_time = "2023-12-12 10:10"
-admin_user = False
-
-
 # user_data = {user_telegram_id: product_id}
 user_data = {}
 
@@ -48,6 +41,10 @@ user_data = {}
 # ! START COMMAND ------------------------------>>
 @bot.message_handler(commands=['start']) 
 def start_command_handler(message: types.Message):
+
+    # ! TEST VARIABLES
+    premium_user = None
+    valid_until_date_time = None
 
     # get the user id
     user_telegram_id = str(message.from_user.id)
@@ -302,4 +299,4 @@ def cancel_subscription_callback(call: types.CallbackQuery):
 # //    bot.answer_callback_query(callback_query_id=call.id, text='Not available :(', show_alert=True)
 
 bot.add_custom_filter(ProductsCallbackFilter())
-bot.infinity_polling()
+bot.polling()
