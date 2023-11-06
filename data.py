@@ -40,11 +40,6 @@ PAYMENTS = [
 PREMIUM = [
     {
         "id": 0,
-        "name": "Join Group",
-        "emoji": "✅"
-    },
-    {
-        "id": 1,
         "name": "Cancel Subscription",
         "emoji": "❌"
     },

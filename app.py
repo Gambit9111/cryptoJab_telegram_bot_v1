@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TELEGRAM_BOT_API_TOKEN = os.getenv("TELEGRAM_BOT_API_KEY")
+TELEGRAM_PREMIUM_CHANNEL_ID = os.getenv("TELEGRAM_PREMIUM_CHANNEL_ID")
 bot = TeleBot(TELEGRAM_BOT_API_TOKEN, num_threads=4, parse_mode="HTML")
 
 # data imports
@@ -39,7 +40,6 @@ admin_user = False
 
 # user_data = {user_telegram_id: product_id}
 user_data = {}
-db = Database()
 
 
 # ! START COMMAND ------------------------------>>
@@ -56,20 +56,23 @@ def start_command_handler(message: types.Message):
         user_data.pop(user_telegram_id, None)
     
     bot.send_message(message.chat.id, WELCOME_MESSAGE)
-
+    db = Database()
     # * fetch user from db by telegram id to check if hes premium
     user = db.fetchone("SELECT * FROM users WHERE telegram_id = %s", (user_telegram_id,))
+    db.close()
 
-    # * if user exists in the database he is premium
+    # * if user exists in the database and in the group chat he is premium
     if user:
-        premium_user = True
-        valid_until_date_time = user[5]
-        print("User: " + user_telegram_id + " is premium")
+        chat_member = bot.get_chat_member(TELEGRAM_PREMIUM_CHANNEL_ID, user_telegram_id)
+        if chat_member.status == 'member':
+            premium_user = True
+            valid_until_date_time = user[5]
+            print("User: " + user_telegram_id + " is premium")
 
     # ? PREMIUM USER MENU
     if premium_user:
         # calculate duration left
-        duration_left = datetime.datetime.strptime(valid_until_date_time, '%Y-%m-%d %H:%M') - datetime.datetime.now()
+        duration_left = valid_until_date_time - datetime.datetime.now()
         # create a markup text to show premium duration
         text = f"Your premium subscription is valid until {valid_until_date_time}\n" \
                f"Duration left: {duration_left.days} days {duration_left.seconds // 3600} hours"
@@ -224,24 +227,12 @@ def premium_callback(call: types.CallbackQuery):
     callback_data: dict = premium_factory.parse(callback_data=call.data)
     premium_id = int(callback_data['premium_id'])
 
-    # * premium_id = 0 | join the vip channel
-    # * premium_id = 1 | cancel the subscription
+    # * premium_id = 0 | cancel the subscription
 
     print(user_telegram_id, premium_id)
 
     match premium_id:
-        case 0:  #? join the vip channel
-        # TODO check if the user is in the group already, notify him if he is, otherwise send him the invite link
-            if joined_group:
-                bot.answer_callback_query(callback_query_id=call.id, text='You are already in the group', show_alert=True)
-                return
-            else:
-                # ! send user invite link to the group
-                text = "Join the group: https://t.me/joinchat/AAAAAFh6X1ZjZjYx"
-                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text=text)
-                return
-        case 1:  #? cancel the subscription
+        case 0:  #? cancel the subscription
             # Create a markup for subscription cancelation, warn the user that if he cancels the sub he will be kicked out of the group iommediately
             text = f"❌ Are you sure you want to cancel your subscription? If you cancel the subscription now, you will not be able to access the VIP group anymore! ❌"
 
@@ -271,6 +262,12 @@ def cancel_subscription_callback(call: types.CallbackQuery):
     
     # send the user back to premium menu
     if call.data == 'back_to_premium':
+
+        db = Database()
+        # * fetch user from db by telegram id to check if hes premium
+        user = db.fetchone("SELECT * FROM users WHERE telegram_id = %s", (user_telegram_id,))
+        db.close()
+        valid_until_date_time = user[5]
         # calculate duration left
         duration_left = valid_until_date_time - datetime.datetime.now()
         # create a markup text to show premium duration
