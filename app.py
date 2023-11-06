@@ -39,6 +39,7 @@ admin_user = False
 
 # user_data = {user_telegram_id: product_id}
 user_data = {}
+db = Database()
 
 
 # ! START COMMAND ------------------------------>>
@@ -55,6 +56,15 @@ def start_command_handler(message: types.Message):
         user_data.pop(user_telegram_id, None)
     
     bot.send_message(message.chat.id, WELCOME_MESSAGE)
+
+    # * fetch user from db by telegram id to check if hes premium
+    user = db.fetchone("SELECT * FROM users WHERE telegram_id = %s", (user_telegram_id,))
+
+    # * if user exists in the database he is premium
+    if user:
+        premium_user = True
+        valid_until_date_time = user[5]
+        print("User: " + user_telegram_id + " is premium")
 
     # ? PREMIUM USER MENU
     if premium_user:
